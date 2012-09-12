@@ -1,0 +1,223 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings FATAL => "all";
+
+our $VERSION = "1.0";
+
+use DBI;
+use Data::Dumper;
+use POSIX qw(strftime);
+
+my $dbname = "test";
+my $dsn = "DBI:mysql:database=$dbname;mysql_read_default_group=client";
+# $dsn = "DBI:mysql:database=$database;host=$hostname;port=$port";
+
+my $user;
+my $pass;
+my $defaults = ();
+my $dbh = DBI->connect($dsn, $user, $pass, $defaults);
+if (!$dbh) {
+  die "bollocks!";
+}
+
+my $inno = new InnoDB::Status($dbh);
+
+$inno->header();
+$inno->background();
+# $inno->semaphores();
+# $inno->fileio();
+# $inno->insert_adaptive();
+$inno->log();
+# $inno->bufferpool();
+# $inno->rowoperations();
+# $inno->transactions();
+$inno->trailer();
+
+package InnoDB::Status;
+
+sub new
+{
+   my $class = shift;
+   my $self = {};
+   $self->{OPTS} = shift;
+   bless($self);
+   return $self;
+}
+
+sub collect_status
+{
+   my $self = shift;
+}
+
+sub header
+{
+   my $self = shift;
+   print "=====================================\n";
+   print ::strftime("%y%m%d %H:%M:%S", localtime), " INNODB MONITOR OUTPUT\n";
+   print "=====================================\n";
+}
+
+sub background
+{
+   my $self = shift;
+   print "-----------------\n";
+   print "BACKGROUND THREAD\n";
+   print "-----------------\n";
+
+# srv_master_thread loops: 1 1_second, 1 sleeps, 0 10_second, 1 background, 1 flush
+# srv_master_thread log flush and writes: 128
+}
+
+sub semaphores
+{
+   my $self = shift;
+   print "----------\n";
+   print "SEMAPHORES\n";
+   print "----------\n";
+
+# OS WAIT ARRAY INFO: reservation count 2, signal count 2
+# Mutex spin waits 0, rounds 0, OS waits 0
+# RW-shared spins 2, rounds 60, OS waits 2
+# RW-excl spins 0, rounds 0, OS waits 0
+# Spin rounds per wait: 0.00 mutex, 30.00 RW-shared, 0.00 RW-excl
+}
+
+sub fileio
+{
+   my $self = shift;
+   print "--------\n";
+   print "FILE I/O\n";
+   print "--------\n";
+
+# I/O thread 0 state: waiting for completed aio requests (insert buffer thread)
+# I/O thread 1 state: waiting for completed aio requests (log thread)
+# I/O thread 2 state: waiting for completed aio requests (read thread)
+# I/O thread 3 state: waiting for completed aio requests (read thread)
+# I/O thread 4 state: waiting for completed aio requests (read thread)
+# I/O thread 5 state: waiting for completed aio requests (read thread)
+# I/O thread 6 state: waiting for completed aio requests (write thread)
+# I/O thread 7 state: waiting for completed aio requests (write thread)
+# I/O thread 8 state: waiting for completed aio requests (write thread)
+# I/O thread 9 state: waiting for completed aio requests (write thread)
+# Pending normal aio reads: 0 [0, 0, 0, 0] , aio writes: 0 [0, 0, 0, 0] ,
+#  ibuf aio reads: 0, log i/o's: 0, sync i/o's: 0
+# Pending flushes (fsync) log: 0; buffer pool: 0
+# 373 OS file reads, 3 OS file writes, 3 OS fsyncs
+# 0.00 reads/s, 0 avg bytes/read, 0.00 writes/s, 0.00 fsyncs/s
+}
+
+sub insert_adaptive
+{
+   my $self = shift;
+   print "-------------------------------------\n";
+   print "INSERT BUFFER AND ADAPTIVE HASH INDEX\n";
+   print "-------------------------------------\n";
+
+# Ibuf: size 1, free list len 0, seg size 2, 0 merges
+# merged operations:
+#  insert 0, delete mark 0, delete 0
+# discarded operations:
+#  insert 0, delete mark 0, delete 0
+# Hash table size 276671, node heap has 2 buffer(s)
+# 0.00 hash searches/s, 0.00 non-hash searches/s
+}
+
+sub log
+{
+   my $self = shift;
+   print "---\n";
+   print "LOG\n";
+   print "---\n";
+
+# Log sequence number 12348711323
+# Log flushed up to   12348711323
+# Last checkpoint at  12348711323
+# Max checkpoint age    1303883551
+# Checkpoint age target 1263137191
+# Modified age          0
+# Checkpoint age        0
+# 0 pending log writes, 0 pending chkp writes
+# 8 log i/o's done, 0.00 log i/o's/second
+}
+
+sub bufferpool
+{
+   my $self = shift;
+   print "----------------------\n";
+   print "BUFFER POOL AND MEMORY\n";
+   print "----------------------\n";
+
+# Total memory allocated 137887744; in additional pool allocated 0
+# Internal hash tables (constant factor + variable factor)
+#     Adaptive hash index 2250352 	(2213368 + 36984)
+#     Page hash           139112 (buffer pool 0 only)
+#     Dictionary cache    603583 	(554768 + 48815)
+#     File system         92352 	(82672 + 9680)
+#     Lock system         333248 	(332872 + 376)
+#     Recovery system     0 	(0 + 0)
+# Dictionary memory allocated 48815
+# Buffer pool size        8191
+# Buffer pool size, bytes 134201344
+# Free buffers            7829
+# Database pages          360
+# Old database pages      0
+# Modified db pages       0
+# Pending reads 0
+# Pending writes: LRU 0, flush list 0, single page 0
+# Pages made young 0, not young 0
+# 0.00 youngs/s, 0.00 non-youngs/s
+# Pages read 360, created 0, written 0
+# 0.00 reads/s, 0.00 creates/s, 0.00 writes/s
+# No buffer pool page gets since the last printout
+# Pages read ahead 0.00/s, evicted without access 0.00/s, Random read ahead 0.00/s
+# LRU len: 360, unzip_LRU len: 0
+# I/O sum[0]:cur[0], unzip sum[0]:cur[0]
+}
+
+sub rowoperations
+{
+   my $self = shift;
+   print "--------------\n";
+   print "ROW OPERATIONS\n";
+   print "--------------\n";
+
+# 0 queries inside InnoDB, 0 queries in queue
+# 1 read views open inside InnoDB
+# ---OLDEST VIEW---
+# Normal read view
+# Read view low limit trx n:o FF400
+# Read view up limit trx id FF400
+# Read view low limit trx id FF400
+# Read view individually stored trx ids:
+# -----------------
+# Main thread process no. 1354, id 139986493449984, state: flushing log
+# Number of rows inserted 0, updated 0, deleted 0, read 0
+# 0.00 inserts/s, 0.00 updates/s, 0.00 deletes/s, 0.00 reads/s
+}
+
+sub transactions
+{
+   my $self = shift;
+   print "------------\n";
+   print "TRANSACTIONS\n";
+   print "------------\n";
+
+# Trx id counter FF400
+# Purge done for trx's n:o < FF20A undo n:o < 0
+# History list length 371
+# LIST OF TRANSACTIONS FOR EACH SESSION:
+# ---TRANSACTION 0, not started
+# MySQL thread id 22, OS thread handle 0x7f513c4ab700, query id 300 192.168.56.1 root
+# show engine innodb status
+}
+
+sub trailer
+{
+   my $self = shift;
+   print "----------------------------\n";
+   print "END OF INNODB MONITOR OUTPUT\n";
+   print "============================\n";
+}
+
+1;

@@ -1,0 +1,90 @@
+:
+# ------------------------------------------------------------------
+# Enable slow-query logging for all queries,
+# write into a datestamped log file,
+# let that run for a specific length of time,
+# then restore the previous slow-query log settings.
+#
+# Licensed under the GNU Public License.
+# Copyright 2012 Bill Karwin
+# ------------------------------------------------------------
+
+: ${GETSLOW_CONF:="$HOME/.my.cnf"}
+: ${GETSLOW_COLLECT_SECONDS:="5"}
+VERBOSE=0
+
+while getopts "c:s:v" opt ; do
+  case $opt in
+  c) GETSLOW_CONF=$OPTARG ;;
+  s) GETSLOW_COLLECT_SECONDS=$OPTARG ;;
+  v) VERBOSE=1 ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+mysql="mysql --defaults-extra-file=$GETSLOW_CONF"
+mysqladmin="mysqladmin --defaults-extra-file=$GETSLOW_CONF"
+
+error_check() {
+  status=$1
+  message=$2
+  if [ $status -ne 0 ] ; then
+    echo "Error occurred while trying: $message" >&2
+    exit 1
+  else
+    if [ $VERBOSE -ne 0 ] ; then
+      echo "$message"
+    fi
+  fi
+}
+
+restore_slow_log() {
+  $mysql -e "SET GLOBAL slow_query_log_file='$slow_log'"
+  error_check "$?" "Restoring slow_query_log_file=$slow_log"
+
+  $mysql -e "SET GLOBAL long_query_time=$long_query_time" 
+  error_check "$?" "Restoring long_query_time=$long_query_time"
+
+  $mysql -e "SET GLOBAL slow_query_log=$slow_logging" 
+  error_check "$?" "Restoring slow_query_log=$slow_logging"
+
+  $mysqladmin flush-logs 
+  error_check "$?" "Flushing logs during restore"
+}
+
+start_time=`date +%Y%m%d%H%M%S`
+
+slow_logging=`$mysql -s -N -e "SELECT @@slow_query_log"` 
+error_check "$?" "Discovering slow_query_log=$slow_logging"
+
+slow_log=`$mysql -s -N -e "SELECT @@slow_query_log_file"` 
+error_check "$?" "Discovering slow_query_log_file=$slow_log"
+
+long_query_time=`$mysql -s -N -e "SELECT @@long_query_time"` 
+error_check "$?"  "Discovering long_query_time=$long_query_time"
+
+trap restore_slow_log INT TERM EXIT
+
+$mysql -e "SET GLOBAL long_query_time=0" 
+error_check "$?" "Setting long_query_time=0"
+
+slow_log_full="${slow_log}-full-${start_time}"
+$mysql -e "SET GLOBAL slow_query_log_file='$slow_log_full'"
+error_check "$?" "Setting slow_query_log_file=$slow_log_full"
+
+$mysql -e "SET GLOBAL slow_query_log=1" 
+error_check "$?" "Setting slow_query_log=1"
+
+$mysqladmin flush-logs 
+error_check "$?" "Flushing slow query log"
+
+if [ $VERBOSE -ne 0 ] ; then
+  echo -n "Sleeping $GETSLOW_COLLECT_SECONDS seconds... "
+fi
+sleep ${GETSLOW_COLLECT_SECONDS:-"0"}
+
+if [ $VERBOSE -ne 0 ] ; then echo "done." ; fi
+
+# Let the trap restore the slow log on EXIT.
+
+exit 0
