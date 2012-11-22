@@ -1,0 +1,56 @@
+MY=http://$(HOST)/my-movies/
+$(MY)
+$(MY)
+$(MY)
+$(MY)
+$(MY)
+$(MY)
+$(MY)
+$(MY)
+$(MY)
+$(MY)
+# Character search
+$(MY)search.php?search_type=characters&q=james+bond
+$(MY)character.php?id=35721
+# Sean Connery
+$(MY)search.php?search_type=actors&q=Connery%2C+Sean
+$(MY)actor.php?id=201693&name=Sean+Connery
+$(MY)movie.php?id=150593&title=Dr.+No
+$(MY)movie.php?id=194295&title=From+Russia+with+Love
+$(MY)movie.php?id=207468&title=Goldfinger
+$(MY)movie.php?id=574127&title=Thunderball
+$(MY)movie.php?id=630789&title=You+Only+Live+Twice
+$(MY)movie.php?id=137248&title=Diamonds+Are+Forever
+$(MY)movie.php?id=372465&title=Never+Say+Never+Again
+# George Lazenby
+$(MY)search.php?search_type=actors&q=Lazenby%2C+Roger
+$(MY)actor.php?id=581060&name=George+Lazenby
+$(MY)movie.php?id=388373&title=On+Her+Majesty%27s+Secret+Service
+# Roger Moore
+$(MY)search.php?search_type=actors&q=Moore%2C+Roger
+$(MY)actor.php?id=707448&name=Roger+Moore
+$(MY)movie.php?id=321029&title=Live+and+Let+Die
+$(MY)movie.php?id=543622&title=The+Man+with+the+Golden+Gun
+$(MY)movie.php?id=560664&title=The+Spy+Who+Loved+Me
+$(MY)movie.php?id=356371&title=Moonraker
+$(MY)movie.php?id=189670&title=For+Your+Eyes+Only
+$(MY)movie.php?id=384932&title=Octopussy
+$(MY)movie.php?id=18071&title=A+View+to+a+Kill
+# Timothy Dalton
+$(MY)search.php?search_type=actors&q=Dalton%2C+Timothy
+$(MY)actor.php?id=228614&name=Timothy+Dalton
+$(MY)movie.php?id=540429&title=The+Living+Daylights
+$(MY)movie.php?id=317192&title=Licence+to+Kill
+# Pierce Brosnan
+$(MY)search.php?search_type=actors&q=Brosnan%2C+Pierce
+$(MY)actor.php?id=127817&name=Pierce+Brosnan
+$(MY)movie.php?id=207456&title=GoldenEye
+$(MY)movie.php?id=579312&title=Tomorrow+Never+Dies
+$(MY)movie.php?id=569788&title=The+World+Is+Not+Enough
+$(MY)movie.php?id=137942&title=Die+Another+Day
+# Daniel Craig
+$(MY)search.php?search_type=actors&q=Craig%2C+Daniel
+$(MY)actor.php?id=213877&name=Daniel+Craig
+$(MY)movie.php?id=91280&title=Casino+Royale
+$(MY)movie.php?id=426689&title=Quantum+of+Solace
+$(MY)movie.php?id=75178&title=Bond+23

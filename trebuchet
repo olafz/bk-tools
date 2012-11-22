@@ -1,0 +1,95 @@
+#!/usr/bin/perl
+# ------------------------------------------------------------
+# 
+# trebuchet - launch a set of URLs against a web server in parallel.
+# Run for a specific number of seconds, then stop.
+#
+# Options:
+# --host h
+# --macro key=value
+# --seconds s
+# --threads t
+# --urlfile file
+# --verbose
+#
+# Copyright 2012 Bill Karwin
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# ------------------------------------------------------------
+
+use strict;
+use warnings;
+use HTTP::Async;
+use HTTP::Request;
+use File::Slurp 'read_file';
+use Getopt::Long;
+
+my $host;
+my %macros = ();
+my $seconds = 60;
+my $threads = 5;
+my $urlfile = 'urls.txt';
+my $verbose = 0;
+
+my $r = GetOptions(
+  'host=s' => \$host,
+  'macro=s%' => \%macros,
+  'seconds=i' => \$seconds,
+  'threads=i' => \$threads,
+  'urlfile=s' => \$urlfile,
+  'verbose!' => \$verbose,
+);
+
+$macros{HOST} = $host if ($host);
+
+my @lines = read_file($urlfile);
+
+my @urls;
+for my $line (@lines) {
+  if ($line =~ /^\s*#/) { next; }
+  $line =~ s/\$\((\w+)\)/$macros{$1}/eg;
+  if ($line =~ /^(\w+)=(.*)/) {
+    $macros{$1} = $2;
+    next;
+  }
+  push(@urls, $line);
+}
+
+my $stoptime = time + $seconds;
+
+my $async = HTTP::Async->new;
+
+my $num_requests = 0;
+
+for (1..$threads) {
+  my $url = $urls[int(rand($#urls))];
+  print "$url" if $verbose;
+  my $req = HTTP::Request->new( GET => $url );
+  $async->add($req);
+  $num_requests++;
+}
+
+while (my $resp = $async->wait_for_next_response) {
+  if (time < $stoptime) {
+    my $url = $urls[int(rand($#urls))];
+    print "$url" if $verbose;
+    my $req = HTTP::Request->new( GET => $url );
+    $async->add($req);
+    $num_requests++;
+  }
+}
+
+print "$num_requests requests = ", ($num_requests/$seconds), "/sec.\n" if $verbose;
+print "Done."
